@@ -1,7 +1,7 @@
 const { MongoClient, ObjectId } = require("mongodb");
 
 const oldUri = "mongodb+srv://mrmintchain:5zBbCIynNttgKUR9@cluster1.icak9.mongodb.net/?retryWrites=true&w=majority&appName=Cluster1";
-const newUri = "mongodb+srv://anannta:Y9BYsXOV1QWFx7W3@anannta.ypyj0d.mongodb.net/?retryWrites=true&w=majority&appName=anannta";
+const newUri = "mongodb+srv://anannta:Y9BYsXOV1QWFx7W3@anannta.ypyj0d.mongodb.net/anantachain?retryWrites=true&w=majority&appName=anannta";
 
 const oldDbName = "mrmintexplorer";
 const newDbName = "anantachain";
@@ -21,6 +21,7 @@ async function migrateValidators() {
     const newUsers = newDb.collection("users");
     const oldValidators = oldDb.collection("validators");
     const newValidators = newDb.collection("validators");
+    const oldDalegators = oldDb.collection("delegators");
 
     console.log("✅ Step 1: Fetching user mappings...");
 
@@ -40,6 +41,7 @@ async function migrateValidators() {
     // Step 2: Migrate Validators
     const validatorsCursor = oldValidators.find();
     let migratedCount = 0;
+    let skippedCount = 0;
 
     while (await validatorsCursor.hasNext()) {
       const validator = await validatorsCursor.next();
@@ -49,29 +51,54 @@ async function migrateValidators() {
 
       if (!newUserId) {
         console.log(`⚠️ Skipped validator (user not found): ${oldUserId}`);
+        skippedCount++;
         continue;
       }
-      console.log()
+
       validator.user_id = newUserId;
- 
+
       // Optional: remove _id to let Mongo create new _id
       delete validator._id;
 
+      const findUser = await newUsers.findOne({ _id: newUserId });
+
+      let myDelegators = [];
+      let loop = validator.delegators.length;
+      let i = 0;
+      while (i < loop) {
+        const delegator = await validator.delegators[i];
+
+        const delegatorId = delegator.delegator_id?.toString();
+        let getDelegator = await oldDalegators.findOne({ _id: new ObjectId(delegatorId) });
+        
+        let newUserIdForDelegator = userIdMap.get(getDelegator.user_id.toString() || "");
+
+        if (newUserIdForDelegator) {
+          myDelegators.push({
+            ...delegator,
+            delegator_id: newUserIdForDelegator
+          });
+        } else {
+          console.log(`⚠️ Skipped delegator (user not found): ${delegatorId}`);
+        }
+        i++
+      }
+ 
       await newValidators.insertOne({
-        isNodeSetup : false,
+        isNodeSetup: false,
         isOld: true,
-        user_id : newUserId,
-        email : validator.email || "",
-        isWithdrawAddressSetValidator : false,
-        status : "0",
-        validator_address : validator.validator_address || "",
-        delegators : validator.delegators || [],
+        userId: newUserId,
+        email: findUser.email || "",
+        isWithdrawAddressSetValidator: false,
+        status: "0",
+        validator_address_old: validator.validator_address || "",
+        oldDelegators: myDelegators || [],
       });
       migratedCount++;
-      console.log(`✅ Migrated validator for user_id: ${newUserId.toString()}`);
+      console.log(`✅ Migrated validator for olduser_id: ${oldUserId} new: ${newUserId.toString()}`);
     }
 
-    console.log(`🎉 Done! Total Validators Migrated: ${migratedCount}`);
+    console.log(`🎉 Done! Total Validators Migrated: `, { migratedCount, skippedCount });
   } catch (err) {
     console.error("❌ Error:", err);
   } finally {
