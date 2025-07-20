@@ -1,6 +1,6 @@
 const { MongoClient, ObjectId } = require("mongodb");
 
-const oldUri = "mongodb+srv://mrmintchain:5zBbCIynNttgKUR9@cluster1.icak9.mongodb.net/?retryWrites=true&w=majority&appName=Cluster1";
+const oldUri = "mongodb+srv://mrmintchain:5zBbCIynNttgKUR9@cluster1.icak9.mongodb.net/mrmintexplorer?retryWrites=true&w=majority&appName=Cluster1";
 const newUri = "mongodb+srv://anannta:Y9BYsXOV1QWFx7W3@anannta.ypyj0d.mongodb.net/anantachain?retryWrites=true&w=majority&appName=anannta";
 
 const oldDbName = "mrmintexplorer";
