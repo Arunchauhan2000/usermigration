@@ -1,11 +1,13 @@
 const { MongoClient } = require("mongodb");
 
 const oldUri = "mongodb+srv://mrmintchain:5zBbCIynNttgKUR9@cluster1.icak9.mongodb.net/mrmintexplorer?retryWrites=true&w=majority&appName=Cluster1";
-const newUri = "mongodb+srv://anannta:Y9BYsXOV1QWFx7W3@anannta.ypyj0d.mongodb.net/anantachain?retryWrites=true&w=majority&appName=anannta";
+//const newUri = "mongodb+srv://anannta:Y9BYsXOV1QWFx7W3@anannta.ypyj0d.mongodb.net/anantachain?retryWrites=true&w=majority&appName=anannta";
+const newUri = "mongodb+srv://mrmintchain:5zBbCIynNttgKUR9@cluster0.icak9.mongodb.net/mrMintBlockchainDev?retryWrites=true&w=majority&appName=Cluster0";
 
 
 const oldDbName = "mrmintexplorer";
-const newDbName = "anantachain";
+// const newDbName = "anantachain";
+const newDbName = "mrMintBlockchainDev";
 
 let migratedCount = 0;
 let skippedCount = 0;
@@ -50,7 +52,7 @@ async function migrateSelectedFields() {
         validatorOperatorAddress: null,
         validatorWithdrawAddress: null,
         validatorWalletAddress: null,
-        isWithdrawAddressSet: true,
+        isWithdrawAddressSet: false,
         validatorEthAddress: null,
         isAppliedForValidators: null,
         isOld: true,
